@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BPUMC — EP Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f4f3ef;color:#1a1a18;min-height:100vh;padding:1.5rem}
+.header-bar{background:#1a1a18;border-radius:12px;padding:.85rem 1.25rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.header-bar h1{font-size:18px;font-weight:600;color:#fff;letter-spacing:.01em}
+.header-bar .sub{font-size:12px;color:#86efac;margin-top:1px}
+.header-date{font-size:12px;color:#aaa;text-align:right}
+h1{font-size:20px;font-weight:600}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #ddd}
+.top-bar span{font-size:13px;color:#666}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:48px;height:48px;background:#1a1a18;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:4px}
+.logo-icon img{width:100%;height:100%;object-fit:contain}
+.flags-box{border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.flags-box.danger{background:#fef2f2;border:1px solid #fca5a5}
+.flags-box.success{background:#f0fdf4;border:1px solid #86efac}
+.flags-title{font-size:13px;font-weight:600;margin-bottom:.5rem;display:flex;align-items:center;gap:6px}
+.flags-title.danger{color:#b91c1c}
+.flags-title.success{color:#15803d}
+.flag-item{font-size:13px;padding:3px 0;display:flex;align-items:flex-start;gap:6px}
+.flag-item.danger{color:#b91c1c}
+.flag-item.success{color:#15803d}
+.section-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.card{background:#fff;border:1px solid #e5e4e0;border-radius:12px;padding:1rem 1.25rem}
+.full{grid-column:1/-1}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.card-sub{font-size:12px;color:#666}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.75rem}
+.metric{background:#f7f6f2;border-radius:8px;padding:.6rem .75rem}
+.metric-label{font-size:11px;color:#666;margin-bottom:3px}
+.metric-val{font-size:19px;font-weight:600;color:#1a1a18}
+.metric-delta{font-size:11px}
+.delta-up{color:#15803d}
+.delta-down{color:#b91c1c}
+.bar-track{height:7px;background:#f0efe9;border-radius:4px;overflow:hidden;margin-top:3px}
+.bar-fill{height:100%;border-radius:4px}
+.bar-green{background:#3B6D11}
+.bar-amber{background:#BA7517}
+.bar-red{background:#A32D2D}
+.bud-item{margin-bottom:7px}
+.bud-label{display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:2px}
+.bud-label span:last-child{font-weight:600;color:#1a1a18}
+.cal-list{display:flex;flex-direction:column;gap:0}
+.cal-item{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f0efe9}
+.cal-item:last-child{border-bottom:none}
+.cal-date{min-width:38px;text-align:center;background:#f0efe9;border-radius:8px;padding:3px 4px}
+.cal-month{font-size:9px;color:#888;text-transform:uppercase;line-height:1}
+.cal-day{font-size:17px;font-weight:600;color:#1a1a18;line-height:1.2}
+.cal-name{font-size:13px;font-weight:500}
+.cal-time{font-size:11px;color:#888}
+.proj-list{display:flex;flex-direction:column;gap:6px}
+.proj-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f7f6f2;transition:background .15s}
+.proj-item:hover{background:#eeede8}
+.proj-pill{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap;cursor:pointer;user-select:none}
+.pill-done{background:#dcfce7;color:#166534}
+.pill-prog{background:#dbeafe;color:#1e40af}
+.pill-todo{background:#f3f4f6;color:#374151}
+.proj-name{font-size:13px;flex:1}
+.proj-due{font-size:11px;color:#888;white-space:nowrap}
+.proj-del{font-size:14px;color:#ccc;cursor:pointer;padding:0 2px;line-height:1;background:none;border:none}
+.proj-del:hover{color:#b91c1c}
+.proj-tabs{display:flex;gap:4px;margin-bottom:.75rem}
+.proj-tab{font-size:12px;padding:4px 12px;border-radius:8px;cursor:pointer;border:1px solid #e5e4e0;background:#fff;color:#666;font-weight:500}
+.proj-tab.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.proj-empty{font-size:13px;color:#aaa;padding:.5rem 0;text-align:center}
+.add-form{display:none;gap:8px;margin-top:.5rem;flex-wrap:wrap;align-items:center}
+.add-form.open{display:flex}
+.add-form input,.add-form select{font-size:12px;padding:5px 8px;border-radius:7px;border:1px solid #ddd;background:#fff;color:#1a1a18;outline:none}
+.add-form input:focus,.add-form select:focus{border-color:#185FA5}
+.add-form input[type=text]{flex:1;min-width:140px}
+.btn-save{font-size:12px;padding:5px 12px;border-radius:7px;border:none;background:#1a1a18;color:#fff;cursor:pointer;font-weight:500}
+.btn-save:hover{background:#333}
+.btn-cancel{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer}
+.proj-count{font-size:11px;color:#aaa;margin-left:4px}
+.trend-label{font-size:11px;color:#888;margin-top:4px}
+.mini-chart{height:60px;position:relative;margin-bottom:4px}
+canvas{width:100%!important}
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.acct-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f0efe9}
+.acct-row:last-child{border-bottom:none}
+.acct-label{color:#666}
+.acct-val{font-weight:600}
+.pos-two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.section-label{font-size:12px;font-weight:600;color:#888;margin-bottom:6px}
+.giving-bar-wrap{display:flex;gap:3px;align-items:flex-end;height:60px;margin-bottom:4px}
+.giving-bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:2px}
+.giving-bar{border-radius:2px 2px 0 0;width:100%;min-height:4px}
+.giving-bar.on{background:#185FA5}
+.giving-bar.below{background:#A32D2D}
+.giving-bar-lbl{font-size:9px;color:#888}
+.pos-metric{background:#f7f6f2;border-radius:8px;padding:.6rem .75rem}
+.pos-metric .metric-label{font-size:11px;color:#666;margin-bottom:3px}
+.pos-metric .metric-val{font-size:15px;font-weight:600}
+.good{color:#15803d}
+.warn{color:#b45309}
+.bad{color:#b91c1c}
+.update-bar{background:#fff;border:1px solid #e5e4e0;border-radius:8px;padding:.6rem 1rem;margin-bottom:1rem;font-size:12px;color:#888;display:flex;align-items:center;justify-content:space-between}
+.update-bar strong{color:#1a1a18}
+@media(max-width:700px){.section-grid,.pos-two{grid-template-columns:1fr}.pos-grid{grid-template-columns:1fr 1fr}.full{grid-column:1}}
+</style>
+</head>
+<body>
+
+<div class="header-bar">
+  <div class="logo">
+    <div class="logo-icon">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF..." alt="BPUMC logo" onerror="this.parentElement.innerHTML='🌳'"/>
+    </div>
+    <div style="margin-left:10px">
+      <h1>Executive Pastor Dashboard</h1>
+      <div class="sub">Bluff Park United Methodist Church</div>
+    </div>
+  </div>
+  <div class="header-date" id="today-date"></div>
+</div>
+
+<div class="update-bar">
+  <span>Data last updated: <strong>May 13, 2026</strong> — Attendance & giving from Google Sheets · Financials from March 2026 report · Calendar from Google Calendar</span>
+  <span style="color:#185FA5;cursor:pointer" onclick="window.location.reload()">↻ Refresh</span>
+</div>
+
+<!-- Flags -->
+<div class="flags-box" id="flags-box">
+  <div class="flags-title" id="flags-title"></div>
+  <div id="flags-list"></div>
+</div>
+
+<div class="section-grid">
+
+  <!-- Attendance -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">👥 Attendance</div>
+      <span class="card-sub">2026 YTD · BPUMC</span>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-label">May 10 total</div><div class="metric-val">380</div><div class="metric-delta delta-up">+55 vs May 3</div></div>
+      <div class="metric"><div class="metric-label">Reg. svc avg</div><div class="metric-val" id="att-avg">—</div></div>
+      <div class="metric"><div class="metric-label">May 10 split</div><div class="metric-val" style="font-size:13px;padding-top:4px">194 TW<br>186 TG</div></div>
+    </div>
+    <div class="mini-chart"><canvas id="attChart" aria-label="2026 weekly attendance trend"></canvas></div>
+    <div class="trend-label" id="att-trend"></div>
+  </div>
+
+  <!-- Giving -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">❤️ Giving</div>
+      <span class="card-sub" id="giving-ytd-label"></span>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-label">May 10 week</div><div class="metric-val">$45,100</div></div>
+      <div class="metric"><div class="metric-label">Monthly budget</div><div class="metric-val">$130,054</div></div>
+      <div class="metric"><div class="metric-label">May YTD</div><div class="metric-val" id="may-ytd" style="font-size:15px"></div></div>
+    </div>
+    <div class="giving-bar-wrap" id="giving-bars"></div>
+    <div class="trend-label">Jan–May 10 weekly giving · red = below $12k weekly pace</div>
+  </div>
+
+  <!-- Budget -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📊 Budget health</div>
+      <span class="card-sub">YTD thru Mar 31, 2026</span>
+    </div>
+    <div id="budget-rows"></div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📅 Next 48 hours</div>
+      <span class="card-sub" id="cal-range"></span>
+    </div>
+    <div class="cal-list" id="cal-list"></div>
+  </div>
+
+  <!-- Financial Position -->
+  <div class="card full">
+    <div class="card-header">
+      <div class="card-title">🏦 Financial position</div>
+      <span class="card-sub">As of March 31, 2026</span>
+    </div>
+    <div class="pos-grid">
+      <div class="pos-metric"><div class="metric-label">Operating checking</div><div class="metric-val">$124,570</div></div>
+      <div class="pos-metric"><div class="metric-label">Total assets</div><div class="metric-val">$2,333,318</div></div>
+      <div class="pos-metric"><div class="metric-label">Foundation accounts</div><div class="metric-val">$1,622,083</div></div>
+      <div class="pos-metric"><div class="metric-label">YTD revenue vs budget</div><div class="metric-val good">+$38,547</div></div>
+      <div class="pos-metric"><div class="metric-label">YTD expenses vs budget</div><div class="metric-val good">$5,981 under</div></div>
+      <div class="pos-metric"><div class="metric-label">Net position (w/ xfers)</div><div class="metric-val good">+$44,529</div></div>
+    </div>
+    <div class="pos-two">
+      <div>
+        <div class="section-label">Revenue YTD vs budget</div>
+        <div id="rev-bars"></div>
+      </div>
+      <div>
+        <div class="section-label">Checking account balances</div>
+        <div id="acct-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Projects -->
+  <div class="card full">
+    <div class="card-header">
+      <div class="card-title">✅ Projects & priorities <span class="proj-count" id="proj-count"></span></div>
+      <button onclick="toggleAddForm()" id="add-btn" style="font-size:12px;padding:4px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer;font-weight:500">+ Add project</button>
+    </div>
+    <div class="proj-tabs">
+      <button class="proj-tab active" onclick="filterProj('All',this)">All</button>
+      <button class="proj-tab" onclick="filterProj('In progress',this)">In progress</button>
+      <button class="proj-tab" onclick="filterProj('To do',this)">To do</button>
+      <button class="proj-tab" onclick="filterProj('Done',this)">Done</button>
+    </div>
+    <div class="proj-list" id="proj-list"></div>
+    <div class="add-form" id="add-form">
+      <input type="text" id="proj-name-input" placeholder="Project name…" />
+      <select id="proj-status-input">
+        <option value="To do">To do</option>
+        <option value="In progress">In progress</option>
+        <option value="Done">Done</option>
+      </select>
+      <input type="text" id="proj-due-input" placeholder="Due date (e.g. Jun 30)" style="width:130px;flex:none"/>
+      <button class="btn-save" onclick="saveProject()">Save</button>
+      <button class="btn-cancel" onclick="toggleAddForm()">Cancel</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function fmt$(n){return'$'+Math.round(n).toLocaleString('en-US')}
+
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+// --- Attendance ---
+const attData = [286,384,315,221,232,321,301,206,269,274,330,279,352,363,294,310,325,380];
+const regularWeeks = attData.filter(v=>v>250&&v<700);
+const regAvg = Math.round(regularWeeks.reduce((a,b)=>a+b,0)/regularWeeks.length);
+document.getElementById('att-avg').textContent = regAvg.toLocaleString();
+const last = attData[attData.length-1];
+const trendEl = document.getElementById('att-trend');
+trendEl.textContent = last >= regAvg ? '↑ May 10 above 2026 regular-service average ('+regAvg+')' : '⚠ May 10 below 2026 regular-service average ('+regAvg+')';
+
+// Draw mini chart
+const c = document.getElementById('attChart');
+c.width = c.parentElement.offsetWidth||320; c.height=60;
+const ctx=c.getContext('2d');
+const maxA=Math.max(...attData),minA=Math.min(...attData)-20;
+const w=c.width,h=60,n=attData.length;
+ctx.strokeStyle='#185FA5';ctx.lineWidth=2;ctx.beginPath();
+attData.forEach((v,i)=>{const x=i*(w/(n-1)),y=h-(v-minA)/(maxA-minA)*(h-8)-4;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+ctx.stroke();
+ctx.fillStyle='rgba(24,95,165,0.1)';
+const lx=(n-1)*(w/(n-1)),ly=h-(attData[n-1]-minA)/(maxA-minA)*(h-8)-4;
+ctx.lineTo(lx,h);ctx.lineTo(0,h);ctx.closePath();ctx.fill();
+ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fillStyle='#185FA5';ctx.fill();
+
+// --- Giving ---
+const givingWeeks=[17920,35537,126028,23354,36491,26410,13171,0,22286,35056,16665,25185,29307,48807,16759,39978,25875,45100];
+const WEEKLY_GOAL=12000;
+document.getElementById('giving-ytd-label').textContent='YTD thru Mar: $428,708 actual vs $390,161 budgeted (+$38,547)';
+document.getElementById('may-ytd').textContent='$74,223';
+document.getElementById('may-ytd').className='metric-val good';
+
+const maxG=Math.max(...givingWeeks);
+const gbWrap=document.getElementById('giving-bars');
+givingWeeks.forEach(v=>{
+  const col=document.createElement('div');col.className='giving-bar-col';
+  const bar=document.createElement('div');
+  bar.className='giving-bar '+(v<WEEKLY_GOAL?'below':'on');
+  bar.style.height=Math.round(v/maxG*52)+'px';
+  const lbl=document.createElement('div');lbl.className='giving-bar-lbl';
+  lbl.textContent=v>0?'$'+Math.round(v/1000)+'k':'';
+  col.appendChild(bar);col.appendChild(lbl);gbWrap.appendChild(col);
+});
+
+// --- Budget ---
+const budgetItems=[
+  {label:'Personnel',spent:189210,budget:841383},
+  {label:'Church Property',spent:89350,budget:321250},
+  {label:'Apportionments & Clergy Benefits',spent:61779,budget:201264},
+  {label:'Student Ministries',spent:13166,budget:38400},
+  {label:'Children\'s Ministries',spent:4226,budget:33600},
+  {label:'Administration',spent:16844,budget:85000},
+  {label:'Music Ministries',spent:1908,budget:13332},
+  {label:'Missions',spent:3668,budget:10764},
+  {label:'Worship',spent:2981,budget:5730},
+  {label:'Adult Ministries',spent:232,budget:4775},
+];
+const budEl=document.getElementById('budget-rows');
+budgetItems.forEach(b=>{
+  const p=Math.round(b.spent/b.budget*100);
+  const cls=p>88?'bar-red':p>70?'bar-amber':'bar-green';
+  budEl.innerHTML+=`<div class="bud-item"><div class="bud-label"><span>${b.label}</span><span>${fmt$(b.spent)} / ${fmt$(b.budget)} (${p}%)</span></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(p,100)}%"></div></div></div>`;
+});
+
+// --- Calendar ---
+// --- Calendar: next 48 hours only ---
+const allEvents=[
+  {month:'May',day:13,name:'Newsletter',time:'8:00 AM – 12:00 PM',hour:8},
+  {month:'May',day:13,name:'Jonathan Todd onboarding',time:'11:00 AM',hour:11},
+  {month:'May',day:13,name:'Ordination paperwork',time:'1:00 – 5:00 PM',hour:13},
+  {month:'May',day:14,name:'Ordination paperwork',time:'8:00 AM – 12:00 PM',hour:8},
+  {month:'May',day:14,name:'Reid onboarding',time:'12:00 PM',hour:12},
+  {month:'May',day:14,name:'Travel to Mallory',time:'3:30 PM',hour:15},
+  {month:'May',day:14,name:'Mallory',time:'4:00 PM',hour:16},
+  {month:'May',day:17,name:'Lowrey Children Baptism',time:'7:45 AM',hour:7},
+  {month:'May',day:17,name:'Traditional Worship',time:'8:45 AM · Sanctuary',hour:8},
+  {month:'May',day:17,name:'The Gathering',time:'10:45 AM',hour:10},
+  {month:'May',day:18,name:'Ross & Quinten 1-on-1',time:'11:00 AM',hour:11},
+  {month:'May',day:18,name:'WECAFE',time:'11:30 AM',hour:11},
+  {month:'May',day:18,name:'Staff Meeting',time:'1:30 PM',hour:13},
+  {month:'May',day:18,name:'Pastors Meeting',time:'2:30 PM',hour:14},
+  {month:'May',day:19,name:'Weekly 1-on-1',time:'9:00 AM',hour:9},
+  {month:'May',day:19,name:'The Creative Corner',time:'9:30 AM',hour:9},
+  {month:'May',day:24,name:'Traditional Worship',time:'8:45 AM · Sanctuary',hour:8},
+  {month:'May',day:24,name:'The Gathering',time:'10:45 AM',hour:10},
+];
+
+const now=new Date();
+const cutoff=new Date(now.getTime()+48*60*60*1000);
+const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Filter to events within next 48 hours
+const filtered=allEvents.filter(e=>{
+  const evDate=new Date(2026, 4, e.day, e.hour); // month 4 = May (0-indexed)
+  return evDate>=now && evDate<=cutoff;
+});
+
+// Set range label
+const endLabel=cutoff.toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+document.getElementById('cal-range').textContent='thru '+cutoff.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric'});
+
+const calEl=document.getElementById('cal-list');
+if(filtered.length===0){
+  calEl.innerHTML='<div style="font-size:13px;color:#888;padding:.5rem 0">No events in the next 48 hours.</div>';
+} else {
+  filtered.forEach(e=>{
+    calEl.innerHTML+=`<div class="cal-item"><div class="cal-date"><div class="cal-month">${e.month}</div><div class="cal-day">${e.day}</div></div><div><div class="cal-name">${e.name}</div><div class="cal-time">${e.time}</div></div></div>`;
+  });
+}
+
+// --- Revenue bars ---
+const revItems=[
+  {label:'Pledges',actual:383141,budget:278886},
+  {label:'Undesignated Gifts',actual:32902,budget:74650},
+  {label:'Misc. Income',actual:1140,budget:24500},
+  {label:'Facilities Reimbursement',actual:1381,budget:1375},
+  {label:'Transfer-In Surplus',actual:6250,budget:6250},
+];
+const revEl=document.getElementById('rev-bars');
+revItems.forEach(r=>{
+  const p=Math.min(Math.round(r.actual/r.budget*100),150);
+  const cls=p>100?'bar-green':p<60?'bar-red':'bar-amber';
+  revEl.innerHTML+=`<div class="bud-item"><div class="bud-label"><span>${r.label}</span><span>${fmt$(r.actual)} <span style="font-weight:400;color:#888">/ ${fmt$(r.budget)}</span></span></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(p,100)}%"></div></div></div>`;
+});
+
+// --- Account balances ---
+const accts=[
+  {label:'Operating Checking',val:124570},
+  {label:'Designated Funds',val:516646},
+  {label:'Building Funds',val:43740},
+  {label:'Community Ministries',val:6878},
+  {label:"Pastor's Discretionary",val:17532},
+  {label:'United Appeal Fund',val:1868},
+];
+const acctEl=document.getElementById('acct-list');
+accts.forEach(a=>{
+  acctEl.innerHTML+=`<div class="acct-row"><span class="acct-label">${a.label}</span><span class="acct-val">${fmt$(a.val)}</span></div>`;
+});
+
+// --- Projects ---
+const projects=[
+  {name:'HVAC replacement planning',status:'In progress',due:'Jun 30'},
+  {name:'2026 budget draft review',status:'In progress',due:'May 31'},
+  {name:'New member class curriculum',status:'To do',due:'Jul 15'},
+  {name:'Parking lot repaving bid',status:'To do',due:'Jun 1'},
+  {name:'Staff retreat planning',status:'Done',due:'May 10'},
+  {name:'Ordination paperwork',status:'In progress',due:'May 14'},
+  {name:'Jonathan Todd onboarding',status:'In progress',due:'May 13'},
+  {name:'Reid onboarding',status:'In progress',due:'May 14'},
+];
+const pillMap={'Done':'pill-done','In progress':'pill-prog','To do':'pill-todo'};
+const projEl=document.getElementById('proj-list');
+projects.forEach(p=>{
+  projEl.innerHTML+=`<div class="proj-item"><span class="proj-pill ${pillMap[p.status]}">${p.status}</span><span class="proj-name">${p.name}</span><span class="proj-due">Due ${p.due}</span></div>`;
+});
+
+function addProject(){
+  const name=prompt('Project name:');if(!name)return;
+  const status=prompt('Status (To do / In progress / Done):','To do')||'To do';
+  const due=prompt('Due date:','');
+  projEl.innerHTML+=`<div class="proj-item"><span class="proj-pill ${pillMap[status]||'pill-todo'}">${status}</span><span class="proj-name">${name}</span><span class="proj-due">${due?'Due '+due:''}</span></div>`;
+}
+
+// --- Flags ---
+const flags=[];
+if(last<regAvg*0.92)flags.push('Attendance this week is significantly below the 2026 average ('+regAvg+')');
+const worship=budgetItems.find(b=>b.label==='Worship');
+if(worship&&Math.round(worship.spent/worship.budget*100)>88)flags.push('Worship budget is at '+Math.round(worship.spent/worship.budget*100)+'% YTD (through Q1 only)');
+const prop=budgetItems.find(b=>b.label==='Church Property');
+if(prop&&Math.round(prop.spent/prop.budget*100)>28)flags.push('Church Property at '+Math.round(prop.spent/prop.budget*100)+'% YTD — HVAC spend driving overpace');
+flags.push('Undesignated Gifts behind budget ($32,902 of $74,650 YTD — 44%)');
+
+const box=document.getElementById('flags-box');
+const title=document.getElementById('flags-title');
+const list=document.getElementById('flags-list');
+if(flags.length===0){
+  box.className='flags-box success';
+  title.className='flags-title success';
+  title.innerHTML='✅ All areas look healthy this week';
+} else {
+  box.className='flags-box danger';
+  title.className='flags-title danger';
+  title.innerHTML='⚠️ Needs attention ('+flags.length+' items)';
+  flags.forEach(f=>{list.innerHTML+=`<div class="flag-item danger">• ${f}</div>`;});
+}
+</script>
+</body>
+</html>
